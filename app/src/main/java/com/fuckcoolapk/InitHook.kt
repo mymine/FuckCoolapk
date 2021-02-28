@@ -30,16 +30,16 @@ class InitHook : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam?) {
         if (lpparam?.packageName == PACKAGE_NAME) {
             try {
-                XposedHelpers.findClass("com.wrapper.proxyapplication.WrapperProxyApplication", lpparam.classLoader)
-                        .hookAfterMethod("attachBaseContext", Context::class.java) {
-                            //获取 context
-                            CoolapkContext.context = it.args[0] as Context
-                            //获取 classloader
-                            CoolapkContext.classLoader = CoolapkContext.context.classLoader
-                            init(lpparam, it)
-                        }
-            } catch (e: Throwable) {
-                try {
+                if (XposedHelpers.findClassIfExists("com.coolapk.market.CoolMarketApplication", lpparam.classLoader) == null) {
+                    XposedHelpers.findClass("com.wrapper.proxyapplication.WrapperProxyApplication", lpparam.classLoader)
+                            .hookAfterMethod("attachBaseContext", Context::class.java) {
+                                //获取 context
+                                CoolapkContext.context = it.args[0] as Context
+                                //获取 classloader
+                                CoolapkContext.classLoader = CoolapkContext.context.classLoader
+                                init(lpparam, it)
+                            }
+                } else {
                     XposedHelpers.findAndHookMethod(Application::class.java, "attach", Context::class.java, object : XC_MethodHook() {
                         override fun afterHookedMethod(param: MethodHookParam) {
                             super.afterHookedMethod(param)
@@ -50,9 +50,9 @@ class InitHook : IXposedHookLoadPackage {
                             init(lpparam, param)
                         }
                     })
-                } catch (e: Throwable) {
-                    LogUtil.e(e)
                 }
+            } catch (e: Throwable) {
+                LogUtil.e(e)
             }
         }
     }

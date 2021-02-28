@@ -126,8 +126,7 @@ class ModifyPictureWatermark {
 }
 
 fun <T> doWaterMark(objects: T): Watermark {
-    var watermarkBuilder: WatermarkBuilder? =null
-    watermarkBuilder = if (objects is File){
+    val watermarkBuilder: WatermarkBuilder = if (objects is File){
         WatermarkBuilder.create(CoolapkContext.context,BitmapFactory.decodeFile(objects.absolutePath) as Bitmap)
     }else{
         WatermarkBuilder.create(CoolapkContext.context,objects as ImageView)
