@@ -19,8 +19,18 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
--keep public class com.fuckcoolapk.InitHook
+-keep public class com.bytedance.sdk.openadsdk.a.d
+# 方法名等混淆指定配置
+-obfuscationdictionary fuckcoolapk-dic.txt
+# 类名混淆指定配置
+-classobfuscationdictionary fuckcoolapk-dic.txt
+# 包名混淆指定配置
+-packageobfuscationdictionary fuckcoolapk-dic.txt
 -assumenosideeffects class kotlin.jvm.internal.Intrinsics {
  public static void check*(...);
  public static void throw*(...);
+}
+
+-assumenosideeffects class com.fuckcoolapk.utils.LogUtil {
+ public static void _d*(...);
 }

@@ -1,6 +1,6 @@
 package com.coolapk.market.util;
 
-public class AuthUtils {
+public class AuthUtil {
     static {
         //System.loadLibrary("a");
         System.load("/data/data/com.coolapk.market/app_lib/liba.so");

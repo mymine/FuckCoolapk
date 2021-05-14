@@ -7,8 +7,8 @@ package com.sfysoft.android.xposed.shelling;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
-import android.util.Log;
 
+import com.fuckcoolapk.AppConfigKt;
 import com.fuckcoolapk.utils.LogUtil;
 import com.fuckcoolapk.utils.OwnSP;
 
@@ -23,7 +23,6 @@ import java.util.Queue;
 import java.util.Set;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
@@ -52,7 +51,7 @@ public class XposedShelling {
      * 拟脱壳的App包名，对应AndroidManifests.xml里的<manifest package的值
      */
     private static final String[] targetPackages =
-            new String[]{"com.coolapk.market"};
+            new String[]{AppConfigKt.PACKAGE_NAME};
 
     public static void runShelling(XC_LoadPackage.LoadPackageParam lpparam) {
         if (OwnSP.INSTANCE.getOwnSP().getBoolean("shouldShelling", false)) {

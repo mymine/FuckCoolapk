@@ -1,8 +1,11 @@
+import java.nio.file.Paths
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
+    compileOptions.encoding = 'UTF-8'
     compileSdkVersion 30
     buildToolsVersion '30.0.3'
     defaultConfig {
@@ -12,7 +15,7 @@ android {
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 30
         versionCode = date.format("yyyyMMdd").toInteger()
-        versionName '0.3'
+        versionName '0.5.8'
     }
     signingConfigs {
         releaseSigningConfig {
@@ -43,26 +46,50 @@ android {
     }
 }
 
+//https://github.com/LSPosed/LSPosed/blob/02b4ba01d83735d4a7db60ae4fc35c57ebc2d07c/app/build.gradle#L84
+def optimizeReleaseResources = task('optimizeReleaseResources').doLast {
+    def aapt2 = Paths.get(project.android.sdkDirectory.path, 'build-tools', project.android.buildToolsVersion, 'aapt2')
+    def zip = Paths.get(project.buildDir.path, 'intermediates',
+            'processed_res', 'release', 'out', "resources-release.ap_")
+    def optimized = new File("${zip}.opt")
+    def cmd = exec {
+        commandLine aapt2, 'optimize', '--collapse-resource-names',
+                '--shorten-resource-paths',
+                '-o', optimized, zip
+        ignoreExitValue false
+    }
+    if (cmd.exitValue == 0) {
+        delete(zip)
+        optimized.renameTo("$zip")
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name == 'processReleaseResources') {
+        task.finalizedBy optimizeReleaseResources
+    }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     compileOnly 'de.robv.android.xposed:api:82'
-    implementation 'androidx.annotation:annotation:1.1.0'
+    implementation 'androidx.annotation:annotation:1.2.0'
     implementation 'commons-codec:commons-codec:20041127.091804'
     implementation 'com.huangyz0918:androidwm-light:0.1.2'
-    implementation 'com.github.bumptech.glide:glide:4.12.0'
-    implementation "com.github.bumptech.glide:okhttp3-integration:4.12.0"
-    //implementation 'com.squareup.okhttp3:okhttp:4.9.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.0'
+    //debugImplementation "com.github.chuckerteam.chucker:library:3.4.0"
+    //releaseImplementation "com.github.chuckerteam.chucker:library-no-op:3.4.0"
 }
 dependencies {
-    def markwon_version = '4.6.2'
-    implementation "io.noties.markwon:core:$markwon_version"
-    implementation"io.noties.markwon:ext-strikethrough:$markwon_version"
+    def markwonVersion = '4.6.2'
+    implementation "io.noties.markwon:core:$markwonVersion"
+    implementation"io.noties.markwon:ext-strikethrough:$markwonVersion"
     //implementation"io.noties.markwon:ext-tasklist:$markwon_version"
     //implementation"io.noties.markwon:ext-tables:$markwon_version"
     //implementation"org.commonmark:commonmark-ext-task-list-items:0.17.1"
 }
 dependencies {
-    def appCenterSdkVersion = '4.1.0'
+    def appCenterSdkVersion = '4.1.1'
     implementation "com.microsoft.appcenter:appcenter-analytics:${appCenterSdkVersion}"
     implementation "com.microsoft.appcenter:appcenter-crashes:${appCenterSdkVersion}"
 }

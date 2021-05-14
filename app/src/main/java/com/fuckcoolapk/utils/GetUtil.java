@@ -1,6 +1,5 @@
 package com.fuckcoolapk.utils;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -12,7 +11,7 @@ import java.util.concurrent.Executors;
 
 public class GetUtil {
     public static final String USER_AGENT = "Mozilla/5.0 (Linux; Android 5.1.1; G011A) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.96 Mobile Safari/537.36";
-    private Context context;
+    //private Context context;
 
     /**
      * 将输入流转换成字符串

@@ -3,6 +3,7 @@
 package com.fuckcoolapk.utils.ktx
 
 import android.content.res.XResources
+import com.fuckcoolapk.utils.CoolContext
 import com.fuckcoolapk.utils.LogUtil
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -16,6 +17,7 @@ import java.lang.reflect.Member
 typealias MethodHookParam = MethodHookParam
 
 fun Class<*>.hookMethod(method: String?, vararg args: Any?) = try {
+    LogUtil._d(tag = "HOOKCOOLAPK", obj = "Hook ${name}.$method Successful")
     findAndHookMethod(this, method, *args)
 } catch (e: NoSuchMethodError) {
     LogUtil.e(e)
@@ -83,6 +85,13 @@ inline fun Class<*>.hookAfterMethod(method: String?, vararg args: Any?, crossinl
         }
     }
 })
+
+fun Class<*>.setReturnConstant(methodName: String?, vararg args: Any?, result: Any?): XC_MethodHook.Unhook? = try {
+    hookMethod(methodName, *args, XC_MethodReplacement.returnConstant(result))
+} catch (e: Throwable) {
+    LogUtil.e(e)
+    null
+}
 
 inline fun Class<*>.replaceMethod(method: String?, vararg args: Any?, crossinline hooker: (MethodHookParam) -> Any?) = hookMethod(method, *args, object : XC_MethodReplacement() {
     override fun replaceHookedMethod(param: MethodHookParam) = try {
@@ -221,8 +230,8 @@ inline fun Class<*>.replaceAfterAllConstructors(crossinline hooker: (MethodHookP
     }
 })
 
-fun String.hookMethod(classLoader: ClassLoader, method: String?, vararg args: Any?) = try {
-    findClass(classLoader)?.hookMethod(method, *args)
+fun String.hookMethod(method: String?, vararg args: Any?, classLoader: ClassLoader = CoolContext.classLoader) = try {
+    findClass(classLoader).hookMethod(method, *args)
 } catch (e: ClassNotFoundError) {
     LogUtil.e(e)
     null
@@ -231,8 +240,8 @@ fun String.hookMethod(classLoader: ClassLoader, method: String?, vararg args: An
     null
 }
 
-inline fun String.hookBeforeMethod(classLoader: ClassLoader, method: String?, vararg args: Any?, crossinline hooker: (MethodHookParam) -> Unit) = try {
-    findClass(classLoader)?.hookBeforeMethod(method, *args, hooker = hooker)
+inline fun String.hookBeforeMethod(method: String?, vararg args: Any?, classLoader: ClassLoader = CoolContext.classLoader, crossinline hooker: (MethodHookParam) -> Unit) = try {
+    findClass(classLoader).hookBeforeMethod(method, *args, hooker = hooker)
 } catch (e: ClassNotFoundError) {
     LogUtil.e(e)
     null
@@ -241,8 +250,8 @@ inline fun String.hookBeforeMethod(classLoader: ClassLoader, method: String?, va
     null
 }
 
-inline fun String.hookAfterMethod(classLoader: ClassLoader, method: String?, vararg args: Any?, crossinline hooker: (MethodHookParam) -> Unit) = try {
-    findClass(classLoader)?.hookAfterMethod(method, *args, hooker = hooker)
+inline fun String.hookAfterMethod(method: String?, vararg args: Any?, classLoader: ClassLoader = CoolContext.classLoader, crossinline hooker: (MethodHookParam) -> Unit) = try {
+    findClass(classLoader).hookAfterMethod(method, *args, hooker = hooker)
 } catch (e: ClassNotFoundError) {
     LogUtil.e(e)
     null
@@ -251,8 +260,8 @@ inline fun String.hookAfterMethod(classLoader: ClassLoader, method: String?, var
     null
 }
 
-inline fun String.replaceMethod(classLoader: ClassLoader, method: String?, vararg args: Any?, crossinline hooker: (MethodHookParam) -> Any?) = try {
-    findClass(classLoader)?.replaceMethod(method, *args, hooker = hooker)
+fun String.setReturnConstant(method: String?, vararg args: Any?, result: Any?, classLoader: ClassLoader = CoolContext.classLoader) = try {
+    findClass(classLoader).setReturnConstant(method, *args, result = result)
 } catch (e: ClassNotFoundError) {
     LogUtil.e(e)
     null
@@ -260,6 +269,61 @@ inline fun String.replaceMethod(classLoader: ClassLoader, method: String?, varar
     LogUtil.e(e)
     null
 }
+
+inline fun String.replaceMethod(method: String?, vararg args: Any?, classLoader: ClassLoader = CoolContext.classLoader, crossinline hooker: (MethodHookParam) -> Any?) = try {
+    findClass(this, classLoader).replaceMethod(method, *args, hooker = hooker)
+} catch (e: ClassNotFoundError) {
+    LogUtil.e(e)
+    null
+} catch (e: ClassNotFoundException) {
+    LogUtil.e(e)
+    null
+}
+
+inline fun String.replaceAfterAllMethods(methodName: String?, classLoader: ClassLoader = CoolContext.classLoader, crossinline hooker: (MethodHookParam) -> Any?) = try {
+    findClass(classLoader).replaceAfterAllMethods(methodName, hooker)
+} catch (e: ClassNotFoundError) {
+    LogUtil.e(e)
+    null
+} catch (e: ClassNotFoundException) {
+    LogUtil.e(e)
+    null
+}
+
+inline fun String.hookBeforeConstructor(vararg args: Any?, classLoader: ClassLoader = CoolContext.classLoader, crossinline hooker: (MethodHookParam) -> Unit) = findClass(classLoader).hookConstructor(*args, object : XC_MethodHook() {
+    override fun beforeHookedMethod(param: MethodHookParam) {
+        try {
+            hooker(param)
+        } catch (e: Throwable) {
+            LogUtil.e(e)
+        }
+    }
+})
+
+inline fun String.hookAfterConstructor(vararg args: Any?, classLoader: ClassLoader = CoolContext.classLoader, crossinline hooker: (MethodHookParam) -> Unit) = findClass(classLoader).hookConstructor(*args, object : XC_MethodHook() {
+    override fun afterHookedMethod(param: MethodHookParam) {
+        try {
+            hooker(param)
+        } catch (e: Throwable) {
+            LogUtil.e(e)
+        }
+    }
+})
+
+inline fun String.replaceConstructor(vararg args: Any?, classLoader: ClassLoader = CoolContext.classLoader, crossinline hooker: (MethodHookParam) -> Unit) = findClass(classLoader).hookConstructor(*args, object : XC_MethodReplacement() {
+    override fun replaceHookedMethod(param: MethodHookParam) {
+        try {
+            hooker(param)
+        } catch (e: Throwable) {
+            LogUtil.e(e)
+        }
+    }
+})
+
+fun String.callStaticMethod(methodName: String?, vararg args: Any?, classLoader: ClassLoader = CoolContext.classLoader) = findClass(classLoader).callStaticMethod(methodName, *args)
+
+@Suppress("UNCHECKED_CAST")
+fun <T> String.callStaticMethodAs(methodName: String?, vararg args: Any?, classLoader: ClassLoader = CoolContext.classLoader) = findClass(classLoader).callStaticMethod(methodName, *args) as T
 
 fun MethodHookParam.invokeOriginalMethod(): Any? = invokeOriginalMethod(method, thisObject, args)
 
@@ -299,17 +363,9 @@ fun Any.callMethod(methodName: String?, parameterTypes: Array<Class<*>>, vararg 
 
 fun Class<*>.callStaticMethod(methodName: String?, parameterTypes: Array<Class<*>>, vararg args: Any?): Any = callStaticMethod(this, methodName, parameterTypes, *args)
 
-fun String.findClass(classLoader: ClassLoader?) = try {
-    findClass(this, classLoader)
-} catch (e: ClassNotFoundError) {
-    LogUtil.e(e)
-    null
-} catch (e: ClassNotFoundException) {
-    LogUtil.e(e)
-    null
-}
+fun String.findClass(classLoader: ClassLoader? = CoolContext.classLoader): Class<*> = findClass(this, classLoader)
 
-fun String.findClassOrNull(classLoader: ClassLoader?): Class<*>? = findClassIfExists(this, classLoader)
+fun String.findClassOrNull(classLoader: ClassLoader? = CoolContext.classLoader): Class<*>? = findClassIfExists(this, classLoader)
 
 fun Class<*>.new(vararg args: Any?): Any = newInstance(this, *args)
 
