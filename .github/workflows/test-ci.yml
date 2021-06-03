@@ -1,6 +1,8 @@
-name: Test CI
+name: Build CI
 
 on: workflow_dispatch
+#  push:
+#    branches: [ master ]
 
 env:
   WARN_ON_PR: "artifact upload is disabled due to the workflow is trigged by pull request."
@@ -42,23 +44,26 @@ jobs:
           alias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
+
       - name: Get Apk Info
         id: apk
         uses: JantHsueh/get-apk-info-action@master
         with:
           apkPath: ${{steps.sign_app.outputs.signedReleaseFile}}
 
-      - name: Generate Patched Apk for Coolapk
+      - name: Generate Patched APK For Coolapk
         run: |
           export XPATCH_PATH='/tmp/xpatch.jar'
           export COOLAPK_PATH='/tmp/coolapk.apk'
           curl -Lo "$XPATCH_PATH" $(curl -L 'https://api.github.com/repos/WindySha/Xpatch/releases/latest' | jq -r '.assets[0].browser_download_url')
           curl -Lo "$COOLAPK_PATH" $(curl -L 'https://api.github.com/repos/t0HiiBwn/CoolapkRelease/releases/latest' | jq -r '.assets[0].browser_download_url')
-          java -jar "$XPATCH_PATH" "$COOLAPK_PATH" -f -xm ${{steps.sign_app.outputs.signedReleaseFile}} -o dist/coolapk_with_fuckcoolapk_${{steps.apk.outputs.versionNum}}.apk
-          cp ${{steps.sign_app.outputs.signedReleaseFile}} dist/fuckcoolapk_${{steps.apk.outputs.versionNum}}_${{steps.apk.outputs.versionCode}}.apk
+          java -jar "$XPATCH_PATH" "$COOLAPK_PATH" -xm ${{steps.sign_app.outputs.signedReleaseFile}} -o 'dist/coolapk_with_fuckcoolapk_${{steps.apk.outputs.versionNum}}.apk'
 
-      - uses: actions/upload-artifact@v2
-        name: Upload Patched Apk
-        with:
-          name: fuckcoolapk_${{steps.apk.outputs.versionNum}}_${{steps.apk.outputs.versionCode}}
-          path: dist
+      - name: Send Files To Telegram
+        run: |
+          export VERSION_NAME=$( echo ${{steps.apk.outputs.versionNum}} | sed 's/\./\\\./g' | sed 's/\-/\\-/g')
+          export RELEASE_URL=$( echo ${{steps.create_release.outputs.html_url}} | sed 's/\./\\\./g' | sed 's/\-/\\-/g')
+          cp ${{steps.sign_app.outputs.signedReleaseFile}} dist/fuckcoolapk_${{steps.apk.outputs.versionNum}}_${{steps.apk.outputs.versionCode}}.apk
+          curl -X POST https://api.telegram.org/bot${{secrets.BOT_TOKEN}}/sendMessage -d "chat_id=-1001233172495&parse_mode=MarkdownV2&text=*New release to Github\!*%0A%0A*Version Name:* ${VERSION_NAME}%0A*Version Code:* ${{steps.apk.outputs.versionCode}}%0A%0A（Xpatch 版本仍在实验阶段，并不稳定。如无特殊需求请优先使用模块。）%0A%0ASee detail [here](${RELEASE_URL})\."
+          curl https://api.telegram.org/bot${{secrets.BOT_TOKEN}}/sendDocument -X POST -F chat_id="-1001233172495" -F document="@dist/fuckcoolapk_${{steps.apk.outputs.versionNum}}_${{steps.apk.outputs.versionCode}}.apk"
+          curl https://api.telegram.org/bot${{secrets.BOT_TOKEN}}/sendDocument -X POST -F chat_id="-1001233172495" -F document="@dist/coolapk_with_fuckcoolapk_${{steps.apk.outputs.versionNum}}.apk"
