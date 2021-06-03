@@ -34,7 +34,6 @@ import android.os.Bundle
 import android.os.Looper
 import android.widget.LinearLayout
 import android.widget.ScrollView
-import com.drakeet.filter.AppFilter
 import com.fuckcoolapk.BuildConfig
 import com.fuckcoolapk.PACKAGE_NAME
 import com.fuckcoolapk.module.*
@@ -61,6 +60,11 @@ import java.io.IOException
 class d : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (lpparam.packageName == PACKAGE_NAME) {
+            try {
+                System.loadLibrary("fc")
+            } catch (e: Throwable) {
+                LogUtil.e(e)
+            }
             try {
                 if (XposedHelpers.findClassIfExists("com.wrapper.proxyapplication.WrapperProxyApplication", lpparam.classLoader) != null) {
                     "com.wrapper.proxyapplication.WrapperProxyApplication"

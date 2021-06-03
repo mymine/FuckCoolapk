@@ -11,11 +11,18 @@ android {
     defaultConfig {
         Date date = new Date()
         applicationId "com.fuckcoolapk"
-        minSdkVersion 21
-        //noinspection ExpiredTargetSdkVersion
+        minSdkVersion 23
         targetSdkVersion 30
         versionCode = date.format("yyyyMMdd").toInteger()
         versionName '0.5.8'
+
+        externalNativeBuild {
+            cmake {
+                abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'
+                cppFlags "-std=c++17"
+                cFlags "-std=gnu99"
+            }
+        }
     }
     signingConfigs {
         releaseSigningConfig {
@@ -30,6 +37,12 @@ android {
             minifyEnabled true
             zipAlignEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            externalNativeBuild {
+                cmake {
+                    cppFlags "-fvisibility=hidden -fvisibility-inlines-hidden -O2 -s -Wno-unused-value"
+                    cFlags "-fvisibility=hidden -fvisibility-inlines-hidden -O2 -s -Wno-unused-value"
+                }
+            }
         }
     }
     compileOptions {
@@ -44,10 +57,19 @@ android {
         exclude '**.properties'
         exclude '**.bin'
     }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+        }
+    }
+    buildFeatures {
+        viewBinding true
+    }
 }
 
 //https://github.com/LSPosed/LSPosed/blob/02b4ba01d83735d4a7db60ae4fc35c57ebc2d07c/app/build.gradle#L84
-def optimizeReleaseResources = task('optimizeReleaseResources').doLast {
+def optimizeReleaseRes = task('optimizeReleaseRes').doLast {
     def aapt2 = Paths.get(project.android.sdkDirectory.path, 'build-tools', project.android.buildToolsVersion, 'aapt2')
     def zip = Paths.get(project.buildDir.path, 'intermediates',
             'processed_res', 'release', 'out', "resources-release.ap_")
@@ -66,7 +88,7 @@ def optimizeReleaseResources = task('optimizeReleaseResources').doLast {
 
 tasks.whenTaskAdded { task ->
     if (task.name == 'processReleaseResources') {
-        task.finalizedBy optimizeReleaseResources
+        task.finalizedBy optimizeReleaseRes
     }
 }
 
