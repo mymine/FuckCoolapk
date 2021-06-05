@@ -48,7 +48,7 @@
 
 ## Contribution
 
-参见[贡献指南](CONTRIBUTION.md)。
+参见[贡献指南](CONTRIBUTING.md)。
 
 ## Donate
 

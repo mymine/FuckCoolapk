@@ -32,10 +32,10 @@ import java.util.*
 class InsertHeadlineCard {
     fun init() {
         "com.coolapk.market.viewholder.ImageListCardViewHolder"
-                .hookBeforeMethod("bindTo", Object::class.java) {
+                .hookBeforeMethod("bindTo", Object::class.java) { param ->
                     if ((CoolContext.activity.javaClass.name == "com.coolapk.market.view.splash.SplashActivity") or (CoolContext.activity.javaClass.name == "com.coolapk.market.view.main.MainActivity")) {
-                        val entityCard = it.args[0]
-                        it.args[0] = "com.coolapk.market.model.EntityCard"
+                        val entityCard = param.args[0]
+                        param.args[0] = "com.coolapk.market.model.EntityCard"
                                 .callStaticMethod("builder")
                                 ?.callMethod("setEntityId", entityCard.callMethod("getEntityId"))
                                 ?.callMethod("setEntityFixed", entityCard.callMethod("getEntityFixed"))
@@ -46,6 +46,15 @@ class InsertHeadlineCard {
                                 ?.callMethod("setLastUpdate", entityCard.callMethod("getLastUpdate"))
                                 ?.callMethod("setEntities", (entityCard.callMethod("getEntities") as ArrayList<Any?>)
                                         .apply {
+                                            if (OwnSP.ownSP.getBoolean("removeFeedAds", false))
+                                                listIterator().run {
+                                                    while (hasNext()) {
+                                                        next()?.let {
+                                                            if ((it.callMethod("getUrl") as String).contains("/apk/")) remove()
+                                                            if ((it.callMethod("getTitle") as String).contains("好物")) remove()
+                                                        }
+                                                    }
+                                                }
                                             val jsonArray = JSONArray(OwnSP.ownSP.getString("configBannerCard", "[]"))
                                             for (i in 0 until jsonArray.length()) {
                                                 val jsonObject = jsonArray.getJSONObject(i)

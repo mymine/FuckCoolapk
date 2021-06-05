@@ -1,8 +1,8 @@
-# FC 贡献指南
+# Fuck Coolapk 贡献指南
 
 *版本 1.0.0 (2021.4.30)*
 
-首先，欢迎您为 Fuck Coolapk 做出贡献，以下是 FC 贡献指南。
+首先，欢迎您为 Fuck Coolapk 做出贡献，以下是 Fuck Coolapk 贡献指南。
 
 ## Commit
 
@@ -26,6 +26,6 @@
 
 ## 其他
 
-- 如还有其他疑问，可加入 FC 的 [Telegram Group](https://t.me/fuck_coolapk_chat) 询问。
+- 如还有其他疑问，可加入 FC 的 [Telegram Group](https://t.me/fuck_coolapk_chat) 或发送邮件至 [fuckcoolapk@pm.me](mailto:fuckcoolapk@pm.me) 询问。
 
 - 如有意长期维护，可申请加入内部开发组（申请之前务必提交一个 pr）。
